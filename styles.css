@@ -1,3 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,500;1,500&display=swap');
+
+:root {
+    --lblack: rgb(40, 40, 40);
+    --lwhite: rgb(220, 220, 220);
+    --lgray: rgb(100, 100, 100);
+    --dgray: rgb(70, 70, 70);
+    --darkergray: rgb(50, 50, 50);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -5,7 +15,94 @@
 }
 
 body {
-    width: 100vw;
-    height: 100vh;
-    background-color: color(0.1, 0.1, 0.1, 1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--lblack);
+    font-family: 'Roboto Mono', sans-serif;
+    font-size: 0.9rem;
+    min-width: 100vw;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    align-items: end;
+    justify-content: end;
+    position: relative;
+    border-bottom: .1rem solid whitesmoke;
+    padding: 0 1rem;
+    width: 80vw;
+    height: 10vh;
+}
+
+#square {
+    position: absolute;
+    top: -400%;
+    background-color: black;
+    height: 6vh;
+    width: 6vh;
+}
+
+.variables {
+    color: whitesmoke;
+    position: absolute;
+    padding: 1rem 1.2rem;
+    margin: 2rem;
+    width: 18rem;
+    border-radius: .3rem;
+    bottom: 0;
+    left: 0;
+    background-color: var(--lgray);
+}
+
+.textBox {
+    appearance: none;
+    box-shadow: none;
+    outline: none;
+    border-radius: 1rem;
+}
+
+.variables ul li {
+    display: flex;
+    margin: .4rem 0;
+    background-color: var(--dgray);
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: .3rem;
+    list-style-type: none;
+    border-radius: .3rem;
+    transition: all .6s;
+}
+
+.variables ul li:hover {
+    background-color: var(--darkergray);
+    transform: translateY(-.1rem);
+}
+
+.slider {
+    -webkit-appearance: none;
+    outline: none;
+    height: .5rem;
+    width: 50%;
+    border-radius: 1rem;
+    opacity: .6;
+    transition: all .5s;
+    cursor: pointer;
+}
+
+.slider:hover {
+    opacity: .8;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%; 
+    background: white;
+    cursor: pointer;
 }

@@ -8,9 +8,24 @@
 </head>
 <body>
     <div class="container">
-        <div class="square">
-
-        </div>
+        <div class="spring"></div>
+        <div id="square"></div>
+    </div>
+    <div class="variables">
+        <ul>
+            <li>
+                <label for="FPS">FPS: </label>
+                <input class="textBox" type="number">
+            </li>
+            <li class="sliderLi">
+                <label for="Damping">Damping: <span>0</span></label>
+                <input class="slider" oninput="UpdateLabelValues()" type="range" min="0" max="100" value="0">
+            </li>
+            <li class="sliderLi">
+                <label for="Gravity">Gravity: <span>0</span></label>
+                <input class="slider" oninput="UpdateLabelValues()" type="range" min="0" max="100" value="0">
+            </li>
+        </ul>
     </div>
     <script src="main.js"></script>
 </body>
