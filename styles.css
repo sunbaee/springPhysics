@@ -39,7 +39,8 @@ body {
 
 #square {
     position: absolute;
-    top: -400%;
+    top: -3vh;
+    left: -3vh;
     background-color: black;
     height: 6vh;
     width: 6vh;
