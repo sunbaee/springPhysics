@@ -59,14 +59,14 @@ const startPosition = new Vector(innerWidth / 2, innerHeight * 1 / 4);
 const sqrPushRadius = Math.round(window.innerHeight / 100 * 6);
 const sqrHalfSize = Math.round(window.innerHeight / 100 * 3);
 
-const collisionDamping = 1; 
-const collisionFriction = 0.2;
+const collisionDamping = .5; 
+const collisionFriction = .6;
 
 const gravity = 980; // value per frame ("cm")
 
 const velPerDist = 8;
 
-const VELOCITY_ERROR = 10;
+const VELOCITY_ERROR = 5;
 const MS_CONVERSOR = 0.001; // converts ms to seconds
 const FRAME_TIME = 16; // ms
 
@@ -76,9 +76,8 @@ var sqrPos = new Vector();
 
 var mPos = new Vector();
 
-var gPotVel;
-var groundY;
 var isPushing;
+var groundY;
 
 window.onmousedown = e => {
     mPos = new Vector(e.clientX, e.clientY);
@@ -97,18 +96,10 @@ window.onmouseup = () => {
     if (!isPushing) return;
 
     isPushing = false;
-    SetGPotential();
 }
 
 function SetPositions() {
     groundY = container.getBoundingClientRect().bottom;
-}
-
-function SetGPotential() {
-    var groundHeight = Math.max(0, groundY - sqrPos.y);
-    var velSqrd = 2 * gravity * (groundHeight - sqrHalfSize) + Math.pow(sqrVel.y, 2);
-    
-    gPotVel = Math.sqrt(Math.max(0, velSqrd * collisionDamping));
 }
 
 function PushSquare() {
@@ -117,12 +108,15 @@ function PushSquare() {
     return mPos.Subtract(sqrPos).Mult(velPerDist);
 }
 
-function DetectCollision() {
-    if (sqrPos.y + sqrHalfSize >= groundY) {
+function Spring() {
+
+}
+
+function DetectCollision(nextPos) {
+    if (nextPos.y + sqrHalfSize >= groundY) {
+        sqrPos.y = groundY - sqrHalfSize;
         sqrVel.x *= (1 - collisionFriction);
-        sqrVel.y = -gPotVel;
-        
-        SetGPotential();
+        sqrVel.y = -Math.abs(sqrVel.y) * (1 - collisionDamping);
     }
 }
 
@@ -144,11 +138,13 @@ async function Process(frameTime) {
         await Sleep(frameTime);
         SetPositions();
         
-        sqrVel = !PushSquare() ? sqrVel.Add(sqrAcc.Mult(deltaTime)) : PushSquare();
-        DetectCollision();
+        sqrVel = !isPushing ? sqrVel.Add(sqrAcc.Mult(deltaTime)) : PushSquare();
+        
+        var nextFramePos = sqrPos.Add(sqrVel.Mult(deltaTime));
+        DetectCollision(nextFramePos);
         
         if (sqrVel.MagSqrd() <= Math.pow(VELOCITY_ERROR, 2)) sqrVel = new Vector();
-        
+
         sqrPos = sqrPos.Add(sqrVel.Mult(deltaTime));
         MoveSquare(sqrPos, FRAME_TIME);
     }
@@ -158,8 +154,6 @@ function Start() {
     sqrPos = startPosition;
     
     SetPositions();
-    SetGPotential();
-
     MoveSquare(sqrPos, 0);
 }
 
