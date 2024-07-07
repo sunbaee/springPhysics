@@ -2,10 +2,11 @@
 
 :root {
     --lblack: rgb(40, 40, 40);
-    --lwhite: rgb(220, 220, 220);
+    --lwhite: rgb(195, 195, 195);
     --lgray: rgb(100, 100, 100);
     --dgray: rgb(70, 70, 70);
     --darkergray: rgb(50, 50, 50);
+    --checkgreen: rgb(78, 230, 78);
 }
 
 * {
@@ -15,26 +16,12 @@
 }
 
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     background-color: var(--lblack);
     font-family: 'Roboto Mono', sans-serif;
     font-size: 0.9rem;
     min-width: 100vw;
     min-height: 100vh;
     overflow: hidden;
-}
-
-.container {
-    display: flex;
-    align-items: end;
-    justify-content: end;
-    position: relative;
-    border-bottom: .1rem solid whitesmoke;
-    padding: 0 1rem;
-    width: 80vw;
-    height: 10vh;
 }
 
 #square {
@@ -46,26 +33,103 @@ body {
     width: 6vh;
 }
 
-.variables {
-    color: whitesmoke;
+.ground {
     position: absolute;
-    padding: 1rem 1.2rem;
-    margin: 2rem;
-    width: 18rem;
-    border-radius: .3rem;
-    bottom: 0;
-    left: 0;
-    background-color: var(--lgray);
+    top: 53vh;
+    border-width: .1rem;
+    border-style: solid;
+    border-image: linear-gradient(to right, rgba(0, 0, 0, 0), var(--lwhite), rgba(0, 0, 0, 0)) 20;
+    width: 100vw;
+    height: 1px;
 }
 
-.textBox {
-    appearance: none;
-    box-shadow: none;
+.spring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1px;
+    height: 1px;
+    border-radius: 50%;
+    background-color: whitesmoke;
+}
+
+.container {
+    display: flex;
+    align-items: flex-start;
+    margin: 2rem;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60vw;
+    gap: 1rem;
+}
+
+.variables {
+    background-color: var(--darkergray);
+    color: var(--lwhite);
+    opacity: 15%;
+    padding: 1rem 1.2rem;
+    border-radius: .3rem;
+    transition: all .5s;
+    overflow-y: hidden;
+}
+
+#numbers {
+    flex: 65%;
+}
+
+#booleans {
+   flex: auto;
+}
+
+.variables:hover {
+    transform: translateY(-.5rem);
+    background-color: var(--lgray);
+    opacity: 85%;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.textBox, .checkBox {
+    border: none;
     outline: none;
+    box-shadow: none;
+    opacity: .4;
+    transition: all .8s;
+}
+
+.textBox:hover, .slider:hover, .checkBox:hover {
+    opacity: .8;
+}
+
+.textBox  {
+    padding: .2rem;
+    width: 50%;
+    background-color: white;
+    font-family: "Roboto Mono", sans-serif;
+    color: black;
+    appearance: none;
+    border-radius: .5rem;
+}
+
+.checkBox {
+    background-color: var(--lwhite);
+    width: .8rem;
+    height: .8rem;
+    margin: 0 .4rem;
+    appearance: none;
+}
+
+.checkBox:checked {
+    background-color: var(--checkgreen);
     border-radius: 1rem;
 }
 
-.variables ul li {
+.variables li {
     display: flex;
     margin: .4rem 0;
     background-color: var(--dgray);
@@ -78,9 +142,10 @@ body {
     transition: all .6s;
 }
 
-.variables ul li:hover {
+.variables li:hover {
     background-color: var(--darkergray);
-    transform: translateY(-.1rem);
+    transform: translateY(-.25rem);
+    color: whitesmoke;
 }
 
 .slider {
@@ -89,13 +154,9 @@ body {
     height: .5rem;
     width: 50%;
     border-radius: 1rem;
-    opacity: .6;
+    opacity: .4;
     transition: all .5s;
     cursor: pointer;
-}
-
-.slider:hover {
-    opacity: .8;
 }
 
 .slider::-webkit-slider-thumb {

@@ -53,31 +53,56 @@ document.addEventListener("dragstart", e => {
 const Sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 
 const square = document.querySelector("#square");
-const container = document.querySelector(".container");
+const ground = document.querySelector(".ground");
+const spring = document.querySelector(".spring");
 
+// Default height;
+const dWidth = 1880;
+const dHeight = 940;
+
+// Object config
 const startPosition = new Vector(innerWidth / 2, innerHeight * 1 / 4);
-const sqrPushRadius = Math.round(window.innerHeight / 100 * 6);
 const sqrHalfSize = Math.round(window.innerHeight / 100 * 3);
+const sqrMass = 5; // kg
 
-const collisionDamping = .5; 
-const collisionFriction = .6;
+// Mouse push
+const sqrPushRadius = sqrHalfSize * 2;
 
+// Natural constants
 const gravity = 980; // value per frame ("cm")
 
-const velPerDist = 8;
+// Spring force
+const eConst = 50; // n / D;
 
-const VELOCITY_ERROR = 5;
+const collisionDamping = (1 - 0.6); 
+const collisionAcc = 0.65 * gravity;
+const cineticAcc = 0.25 * gravity;
+
+// Time config
 const MS_CONVERSOR = 0.001; // converts ms to seconds
 const FRAME_TIME = 16; // ms
 
+// Object variables
 var sqrAcc = new Vector();
 var sqrVel = new Vector();
 var sqrPos = new Vector();
 
 var mPos = new Vector();
 
+var hasGround = true;
 var isPushing;
+
+var springPos;
 var groundY;
+
+var resParse = new Vector(window.innerWidth / dWidth, window.innerHeight / dHeight);
+
+// PX related
+var velPerDist = 10 * resParse.y; //0.07; 
+var baseSpringSize = 300 * resParse.y; //px
+
+// Errors
+var V_ERROR = new Vector(10 * resParse.x, 100 * resParse.y);
 
 window.onmousedown = e => {
     mPos = new Vector(e.clientX, e.clientY);
@@ -98,8 +123,17 @@ window.onmouseup = () => {
     isPushing = false;
 }
 
+function DisableGround(element) {
+    hasGround = element.checked;
+    
+    ground.style.opacity = hasGround ? 1 : 0;
+}
+
 function SetPositions() {
-    groundY = container.getBoundingClientRect().bottom;
+    springPos = new Vector(spring.getBoundingClientRect().x, spring.getBoundingClientRect().y);
+    groundY = ground.getBoundingClientRect().bottom;
+
+    resParse = new Vector(window.innerWidth / dWidth, window.innerHeight / dHeight)
 }
 
 function PushSquare() {
@@ -108,15 +142,24 @@ function PushSquare() {
     return mPos.Subtract(sqrPos).Mult(velPerDist);
 }
 
-function Spring() {
+function SpringPush() {
+    const springVec = sqrPos.Subtract(springPos);
+    const springAcc = -(eConst * (springVec.Mag() - baseSpringSize)) / sqrMass;
 
+    return springVec.Normalized().Mult(springAcc);
 }
 
-function DetectCollision(nextPos) {
-    if (nextPos.y + sqrHalfSize >= groundY) {
+function DetectCollision(nextPos, deltaTime) {
+    if (nextPos.y + sqrHalfSize >= groundY && hasGround) {
         sqrPos.y = groundY - sqrHalfSize;
-        sqrVel.x *= (1 - collisionFriction);
-        sqrVel.y = -Math.abs(sqrVel.y) * (1 - collisionDamping);
+        
+        if (sqrVel.y <= V_ERROR.y) sqrVel.x += -Math.sign(sqrVel.x) * cineticAcc * deltaTime;
+        else sqrVel.x += -Math.sign(sqrVel.x) * collisionAcc * deltaTime;
+
+        sqrVel.y = -Math.abs(sqrVel.y) * collisionDamping;
+        
+        if (Math.abs(sqrVel.y) - gravity * deltaTime <= V_ERROR.y) sqrVel.y = 0;
+        if (Math.abs(sqrVel.x) <= V_ERROR.x) sqrVel.x = 0;
     }
 }
 
@@ -137,14 +180,13 @@ async function Process(frameTime) {
     while (true) {
         await Sleep(frameTime);
         SetPositions();
-        
-        sqrVel = !isPushing ? sqrVel.Add(sqrAcc.Mult(deltaTime)) : PushSquare();
-        
-        var nextFramePos = sqrPos.Add(sqrVel.Mult(deltaTime));
-        DetectCollision(nextFramePos);
-        
-        if (sqrVel.MagSqrd() <= Math.pow(VELOCITY_ERROR, 2)) sqrVel = new Vector();
 
+        sqrVel = !isPushing ? sqrVel.Add(sqrAcc.Mult(deltaTime)) : PushSquare();
+        sqrVel = sqrVel.Add(SpringPush().Mult(deltaTime));
+
+        const nextFramePos = sqrPos.Add(sqrVel.Mult(deltaTime));
+        DetectCollision(nextFramePos, deltaTime);
+        
         sqrPos = sqrPos.Add(sqrVel.Mult(deltaTime));
         MoveSquare(sqrPos, FRAME_TIME);
     }

@@ -8,22 +8,40 @@
 </head>
 <body>
     <div id="square"></div>
+    <div class="spring"></div>
+    <div class="ground"></div>
+
     <div class="container">
-        <div class="spring"></div>
-    </div>
-    <div class="variables">
-        <ul>
+        <ul class="variables" id="numbers">
             <li>
-                <label for="FPS">FPS: </label>
-                <input class="textBox" type="number">
+                <label>FPS: </label>
+                <input class="textBox" type="number" value="">
             </li>
             <li class="sliderLi">
-                <label for="Damping">Damping: <span>0</span></label>
-                <input class="slider" oninput="UpdateLabelValues()" type="range" min="0" max="100" value="0">
+                <label>Gravity: <span>0</span>m/s²</label>
+                <input id="gravity" class="slider" oninput="UpdateLabelValues()" type="range" min="-50" max="50" value="0">
             </li>
             <li class="sliderLi">
-                <label for="Gravity">Gravity: <span>0</span></label>
-                <input class="slider" oninput="UpdateLabelValues()" type="range" min="0" max="100" value="0">
+                <label>Damping: <span>0</span>%</label>
+                <input id="damping" class="slider" oninput="UpdateLabelValues()" type="range" min="0" max="100" value="0">
+            </li>
+            <li class="sliderLi">
+                <label>S-Friction: <span>0</span>%</label>
+                <input id="staticFric" class="slider" oninput="UpdateLabelValues()" type="range" min="0" max="100" value="0">
+            </li>
+            <li class="sliderLi">
+                <label>C-Friction: <span>0</span>%</label>
+                <input id="cineticFric" class="slider" oninput="UpdateLabelValues()" type="range" min="0" max="100" value="0">
+            </li>
+            <li class="sliderLi">
+                <label for="elasticity">K: <span>0</span>N/m</label>
+                <input id="elasticity" class="slider" oninput="UpdateLabelValues()" type="range" min="0" max="200" value="0">
+            </li>
+        </ul>
+        <ul id ="booleans" class="variables">
+            <li>
+                <label>Ground: </label>
+                <input class="checkBox" type="checkbox" onchange="DisableGround(this)" checked="true">
             </li>
         </ul>
     </div>
