@@ -6,7 +6,8 @@
     --lgray: rgb(100, 100, 100);
     --dgray: rgb(70, 70, 70);
     --darkergray: rgb(50, 50, 50);
-    --checkgreen: rgb(78, 230, 78);
+    --checkgreen: rgb(60, 230, 60);
+    --checkred: rgb(230, 60, 60);
 }
 
 * {
@@ -18,7 +19,7 @@
 body {
     background-color: var(--lblack);
     font-family: 'Roboto Mono', sans-serif;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     min-width: 100vw;
     min-height: 100vh;
     overflow: hidden;
@@ -60,7 +61,7 @@ body {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 60vw;
+    width: 44rem;
     gap: 1rem;
 }
 
@@ -75,7 +76,7 @@ body {
 }
 
 #numbers {
-    flex: 65%;
+    flex: 60%;
 }
 
 #booleans {
@@ -117,7 +118,7 @@ input::-webkit-inner-spin-button {
 }
 
 .checkBox {
-    background-color: var(--lwhite);
+    background-color: var(--checkred);
     width: .8rem;
     height: .8rem;
     margin: 0 .4rem;
@@ -167,4 +168,11 @@ input::-webkit-inner-spin-button {
     border-radius: 50%; 
     background: white;
     cursor: pointer;
+}
+
+.showConfig {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin: 1rem;
 }

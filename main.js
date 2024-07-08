@@ -20,8 +20,8 @@ class Vector {
         return new Vector(this.x - vector.x, this.y - vector.y);
     }
 
-    Mult(value) {
-        return new Vector(this.x * value, this.y * value);
+    Mult(v) {
+        return new Vector(this.x * v, this.y * v);
     }
 
     Normalized() {
@@ -34,19 +34,58 @@ class Vector {
 
 // HTML config
 
-function UpdateLabelValues() {
-    const slidersLis = document.querySelectorAll(".sliderLi");
-
-    slidersLis.forEach(element => {
-        var sliderValue = element.querySelector(".slider").value;
-        var sliderLabel = element.querySelector("label span");
-        sliderLabel.innerText = sliderValue;
-    });
-}
-
 document.addEventListener("dragstart", e => {
     e.preventDefault();
 });
+
+// Custom variables
+
+// = > Resolution transition
+const dWidth = 1880;
+const dHeight = 940;
+
+var resParse = new Vector(dWidth / window.innerWidth, dHeight / window.innerHeight);
+
+class Custom {
+    constructor(id, v) {
+        this.id = id;
+        this.v = v;
+    }
+}
+
+// => Time config
+const MS_CONVERSOR = 0.001; // converts ms to seconds
+
+// => Booleans
+var hasGround = true;
+var isPaused = false;
+
+var cfgArr = [new Custom('FPS', Math.round(1 / 60 * 1000)), 
+              new Custom('Mass', 5), 
+              new Custom('Gravity', 1650 * resParse.y), 
+              new Custom('collisionDamping', .4), 
+              new Custom('staticFric', .65 * 1650 * resParse.y), 
+              new Custom('cineticFric', .25 * 1650 * resParse.y),  
+              new Custom('springSize', 165 * resParse.y), 
+              new Custom('eConst', 50), 
+              new Custom('hasGround', true), 
+              new Custom('isPaused', false)];
+
+function UpdateLabelValues(element, type) {
+    cfgArr.forEach(e => {
+        if (e.id == element.id) switch(type) {
+            case 'FrPerS': e.v = Math.round(1 / element.value * 1000); break;
+            case "%F": e.v = element.value / 100 * cfgArr[2].v;  break;
+            case "m": e.v = element.value * 165 * resParse.y;  break;
+            case "%": e.v = element.value / 100;  break;
+
+            default: e.v = element.value;
+        }
+    });
+
+    const eSpan = document.querySelector("label[for=" + element.id + "] span");
+    if (eSpan) eSpan.innerText = element.value;
+}
 
 // Physics
 
@@ -56,71 +95,65 @@ const square = document.querySelector("#square");
 const ground = document.querySelector(".ground");
 const spring = document.querySelector(".spring");
 
-// Default height;
-const dWidth = 1880;
-const dHeight = 940;
-
 // Object config
 const startPosition = new Vector(innerWidth / 2, innerHeight * 1 / 4);
-const sqrHalfSize = Math.round(window.innerHeight / 100 * 3);
-const sqrMass = 5; // kg
 
-// Mouse push
-const sqrPushRadius = sqrHalfSize * 2;
-
-// Natural constants
-const gravity = 980; // value per frame ("cm")
-
-// Spring force
-const eConst = 50; // n / D;
-
-const collisionDamping = (1 - 0.6); 
-const collisionAcc = 0.65 * gravity;
-const cineticAcc = 0.25 * gravity;
-
-// Time config
-const MS_CONVERSOR = 0.001; // converts ms to seconds
-const FRAME_TIME = 16; // ms
+var sqrHalfSize = Math.round(window.innerHeight / 100 * 3);
+var sqrPushRadius = sqrHalfSize * 2;
 
 // Object variables
-var sqrAcc = new Vector();
-var sqrVel = new Vector();
-var sqrPos = new Vector();
+var sqrVel = new Vector(),
+    sqrPos = new Vector(),
+    mPos = new Vector();
 
-var mPos = new Vector();
+var animInterp = true,
+    isClicking,
+    isPushing,
+    isPaused;
 
-var hasGround = true;
-var isPushing;
-
-var springPos;
-var groundY;
-
-var resParse = new Vector(window.innerWidth / dWidth, window.innerHeight / dHeight);
+var springPos,
+    groundY;
 
 // PX related
-var velPerDist = 10 * resParse.y; //0.07; 
-var baseSpringSize = 300 * resParse.y; //px
+var velPerDist = 8 * resParse.y; //0.07; 
 
 // Errors
-var V_ERROR = new Vector(10 * resParse.x, 100 * resParse.y);
+var V_ERROR = new Vector(.5 * resParse.x, 100 * resParse.y);
 
-window.onmousedown = e => {
+function DetectMousePush(e) {
     mPos = new Vector(e.clientX, e.clientY);
-
+    
     const distVec = mPos.Subtract(sqrPos);
     if (distVec.MagSqrd() <= Math.pow(sqrPushRadius, 2)) isPushing = true;
 }
 
-window.onmousemove = e => {
-    if (!isPushing) return;
+window.onmousedown = e => {
+    DetectMousePush(e);
 
-    mPos = new Vector(e.clientX, e.clientY);
+    isClicking = true;
+}
+
+window.onmousemove = e => {
+    if (!isClicking) return;
+
+    DetectMousePush(e);
 }
 
 window.onmouseup = () => {
-    if (!isPushing) return;
+    if (!isPushing && !isClicking) return;
 
+    isClicking = false;
     isPushing = false;
+}
+
+function Pause(element) {
+    isPaused = element.checked;
+
+    sqrVel = new Vector();
+}
+
+function EnableInterpolation(element) {
+    animInterp = element.checked;
 }
 
 function DisableGround(element) {
@@ -131,9 +164,13 @@ function DisableGround(element) {
 
 function SetPositions() {
     springPos = new Vector(spring.getBoundingClientRect().x, spring.getBoundingClientRect().y);
+
+    sqrHalfSize = Math.round(window.innerHeight / 100 * 3);
+    sqrPushRadius = sqrHalfSize * 2;
+
     groundY = ground.getBoundingClientRect().bottom;
 
-    resParse = new Vector(window.innerWidth / dWidth, window.innerHeight / dHeight)
+    resParse = new Vector(window.innerWidth / dWidth, window.innerHeight / dHeight);
 }
 
 function PushSquare() {
@@ -143,22 +180,30 @@ function PushSquare() {
 }
 
 function SpringPush() {
+    const dSpringSize = cfgArr[6].v;
+    const kConst = cfgArr[7].v;
+    const mass = cfgArr[1].v;
+
     const springVec = sqrPos.Subtract(springPos);
-    const springAcc = -(eConst * (springVec.Mag() - baseSpringSize)) / sqrMass;
+    const springAcc = -(kConst * (springVec.Mag() - dSpringSize)) / mass;
 
     return springVec.Normalized().Mult(springAcc);
 }
 
-function DetectCollision(nextPos, deltaTime) {
+function DetectCollision(nextPos, deltaTime, acc) {
     if (nextPos.y + sqrHalfSize >= groundY && hasGround) {
         sqrPos.y = groundY - sqrHalfSize;
         
-        if (sqrVel.y <= V_ERROR.y) sqrVel.x += -Math.sign(sqrVel.x) * cineticAcc * deltaTime;
-        else sqrVel.x += -Math.sign(sqrVel.x) * collisionAcc * deltaTime;
+        var sFric = cfgArr[4].v,
+            cFric = cfgArr[5].v,
+            fType;
 
-        sqrVel.y = -Math.abs(sqrVel.y) * collisionDamping;
+        fType = (Math.abs(acc.x) <= sFric && sqrVel.x < V_ERROR.x) ? acc.x : cFric;
+
+        sqrVel.x += -Math.sign(sqrVel.x) * fType * deltaTime;
+        sqrVel.y = -Math.abs(sqrVel.y) * cfgArr[3].v;
         
-        if (Math.abs(sqrVel.y) - gravity * deltaTime <= V_ERROR.y) sqrVel.y = 0;
+        if (Math.abs(sqrVel.y) - cfgArr[2].v * deltaTime <= V_ERROR.y) sqrVel.y = 0;
         if (Math.abs(sqrVel.x) <= V_ERROR.x) sqrVel.x = 0;
     }
 }
@@ -174,21 +219,23 @@ function MoveSquare(sqrPos, frameTime) {
 }
 
 async function Process(frameTime) {
-    const deltaTime = frameTime * MS_CONVERSOR;
-    sqrAcc = new Vector(0, gravity);
-
     while (true) {
-        await Sleep(frameTime);
+        const deltaTime = cfgArr[0].v * MS_CONVERSOR;
+        var sqrAcc = !isPaused ? new Vector(0, cfgArr[2].v) : new Vector();
+        
+        await Sleep(cfgArr[0].v);
         SetPositions();
 
-        sqrVel = !isPushing ? sqrVel.Add(sqrAcc.Mult(deltaTime)) : PushSquare();
-        sqrVel = sqrVel.Add(SpringPush().Mult(deltaTime));
+        if (isPushing) sqrVel = PushSquare();
+        else sqrAcc = !isPaused ? sqrAcc.Add(SpringPush()) : sqrAcc;
 
         const nextFramePos = sqrPos.Add(sqrVel.Mult(deltaTime));
-        DetectCollision(nextFramePos, deltaTime);
+        DetectCollision(nextFramePos, deltaTime, sqrAcc);
         
+        sqrVel = sqrVel.Add(sqrAcc.Mult(deltaTime));
         sqrPos = sqrPos.Add(sqrVel.Mult(deltaTime));
-        MoveSquare(sqrPos, FRAME_TIME);
+        
+        MoveSquare(sqrPos, animInterp ? cfgArr[0].v : frameTime);
     }
 }
 
@@ -202,8 +249,8 @@ function Start() {
 async function Play() {
     Start();
 
-    await Sleep(FRAME_TIME);
-    Process(FRAME_TIME);
+    await Sleep(cfgArr[0].v);
+    Process(cfgArr[0].v);
 }
 
 // execution
