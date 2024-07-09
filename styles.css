@@ -41,7 +41,7 @@ h3 {
 
 .ground {
     position: absolute;
-    top: 53vh;
+    bottom: 23vh;
     border-width: .1rem;
     border-style: solid;
     border-image: linear-gradient(to right, rgba(0, 0, 0, 0), var(--lwhite), rgba(0, 0, 0, 0)) 20;
@@ -51,7 +51,7 @@ h3 {
 
 .spring {
     position: absolute;
-    top: 50%;
+    top: 2.5%;
     left: 50%;
     width: 1px;
     height: 1px;

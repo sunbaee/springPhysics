@@ -1,39 +1,6 @@
-class Vector {
-    constructor(x = 0, y = 0) {
-        this.x = x;
-        this.y = y;
-    }
-
-    Mag() {
-        return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
-    }
-
-    MagSqrd() {
-        return Math.pow(this.x, 2) + Math.pow(this.y, 2);
-    }
-
-    Add(vector) {
-        return new Vector(this.x + vector.x, this.y + vector.y);
-    }
-
-    Subtract(vector) {
-        return new Vector(this.x - vector.x, this.y - vector.y);
-    }
-
-    Mult(v) {
-        return new Vector(this.x * v, this.y * v);
-    }
-
-    Normalized() {
-        if (this.x == 0 && this.y == 0) return new Vector();
-
-        const vec = new Vector(this.x, this.y);
-        return new Vector(this.x / vec.Mag(), this.y / vec.Mag());
-    }
-}
+import Vector from './JavaScript/vector.js';
 
 // HTML config
-
 document.addEventListener("dragstart", e => {
     e.preventDefault();
 });
@@ -51,8 +18,6 @@ function DisableContainer(element) {
         easing: "ease-in-out"
     })
 }
-
-// Custom variables
 
 // = > Resolution transition
 const dWidth = 1880;
@@ -106,7 +71,7 @@ const ground = document.querySelector(".ground");
 const spring = document.querySelector(".spring");
 
 // Object config
-const startPosition = new Vector(innerWidth / 2, innerHeight * 1 / 4);
+const startPosition = new Vector(innerWidth / 2.5, innerHeight * 1 / 4);
 
 var sqrHalfSize = Math.round(window.innerHeight / 100 * 3);
 var sqrPushRadius = sqrHalfSize * 2;
@@ -263,6 +228,9 @@ async function Process(frameTime) {
         const nextFramePos = sqrPos.Add(sqrVel.Mult(deltaTime));
         DetectCollision(nextFramePos, deltaTime, sqrAcc);
 
+        //const k1 = sqrPos.Add(sqrVel.Mult(deltaTime)), // Eulers Method
+        //      k2 = sqrPos.Add(sqrVel.Mult(deltaTime / 2).Add(k1.Mult(deltaTime / 2)).Mult(1/2));
+
         sqrPos = sqrPos.Add(sqrVel.Mult(deltaTime));
         
         UpdateEnergy();
@@ -285,5 +253,12 @@ async function Play() {
 }
 
 // execution
-
 Play();
+
+// window functions
+
+window.Pause = Pause;
+window.EnableInterpolation = EnableInterpolation;
+window.DisableGround = DisableGround;
+window.UpdateLabelValues = UpdateLabelValues;
+window.DisableContainer = DisableContainer;
