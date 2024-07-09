@@ -38,6 +38,20 @@ document.addEventListener("dragstart", e => {
     e.preventDefault();
 });
 
+function DisableContainer(element) {
+    const contVars = document.querySelector(".container");
+    
+    contVars.animate({
+        transform: `translateX(${element.checked ? 0 : -100}%)`,
+        opacity: `${element.checked ? 1 : 0}`,
+        filter: `blur(${element.checked ? 0 : 3}rem)`
+    }, {
+        duration: 800,
+        fill: "forwards",
+        easing: "ease-in-out"
+    })
+}
+
 // Custom variables
 
 // = > Resolution transition
@@ -45,6 +59,8 @@ const dWidth = 1880;
 const dHeight = 940;
 
 var resParse = new Vector(dWidth / window.innerWidth, dHeight / window.innerHeight);
+
+const pixelM = 150;
 
 class Custom {
     constructor(id, v) {
@@ -56,27 +72,21 @@ class Custom {
 // => Time config
 const MS_CONVERSOR = 0.001; // converts ms to seconds
 
-// => Booleans
-var hasGround = true;
-var isPaused = false;
-
 var cfgArr = [new Custom('FPS', Math.round(1 / 60 * 1000)), 
               new Custom('Mass', 5), 
-              new Custom('Gravity', 1650 * resParse.y), 
+              new Custom('Gravity', pixelM * 10 * resParse.y), 
               new Custom('collisionDamping', .4), 
-              new Custom('staticFric', .65 * 1650 * resParse.y), 
-              new Custom('cineticFric', .25 * 1650 * resParse.y),  
-              new Custom('springSize', 165 * resParse.y), 
-              new Custom('eConst', 50), 
-              new Custom('hasGround', true), 
-              new Custom('isPaused', false)];
+              new Custom('staticFric', .65 * pixelM * 10 * resParse.y), 
+              new Custom('cineticFric', .25 * pixelM * 10 * resParse.y),  
+              new Custom('springSize', pixelM * resParse.y), 
+              new Custom('eConst', 50)]
 
 function UpdateLabelValues(element, type) {
     cfgArr.forEach(e => {
         if (e.id == element.id) switch(type) {
             case 'FrPerS': e.v = Math.round(1 / element.value * 1000); break;
             case "%F": e.v = element.value / 100 * cfgArr[2].v;  break;
-            case "m": e.v = element.value * 165 * resParse.y;  break;
+            case "m": e.v = element.value * pixelM * resParse.y;  break;
             case "%": e.v = element.value / 100;  break;
 
             default: e.v = element.value;
@@ -107,18 +117,20 @@ var sqrVel = new Vector(),
     mPos = new Vector();
 
 var animInterp = true,
-    isClicking,
-    isPushing,
-    isPaused;
+    hasGround = true,
+    isPaused = false;
+
+var isClicking,
+    isPushing;
 
 var springPos,
     groundY;
 
 // PX related
-var velPerDist = 8 * resParse.y; //0.07; 
+var velPerDist = 8 * resParse.y; 
 
 // Errors
-var V_ERROR = new Vector(.5 * resParse.x, 100 * resParse.y);
+var V_ERROR = new Vector(10 * resParse.x, 30 * resParse.y);
 
 function DetectMousePush(e) {
     mPos = new Vector(e.clientX, e.clientY);
@@ -179,15 +191,32 @@ function PushSquare() {
     return mPos.Subtract(sqrPos).Mult(velPerDist);
 }
 
+function SpringDistance(springVector) {
+    return springVector.Mag() - cfgArr[6].v;
+}
+
 function SpringPush() {
-    const dSpringSize = cfgArr[6].v;
-    const kConst = cfgArr[7].v;
-    const mass = cfgArr[1].v;
+    const kConst = cfgArr[7].v,
+          mass = cfgArr[1].v;
 
     const springVec = sqrPos.Subtract(springPos);
-    const springAcc = -(kConst * (springVec.Mag() - dSpringSize)) / mass;
+    const springAcc = -(kConst * (SpringDistance(springVec))) / mass;
 
     return springVec.Normalized().Mult(springAcc);
+}
+
+const energy = document.querySelector(".simInfo p var");
+
+function UpdateEnergy() {
+    const gAcc = cfgArr[2].v,
+          mass = cfgArr[1].v,
+          kCns = cfgArr[7].v;
+
+    const gEnergy = mass * (gAcc / pixelM) * (groundY - (sqrPos.y + sqrHalfSize)) / pixelM,
+          kEnergy = (kCns * Math.pow(SpringDistance(sqrPos.Subtract(springPos)) / pixelM, 2)) / 2,
+          cEnergy = (mass * Math.pow(sqrVel.Mag() / pixelM, 2)) / 2;
+    
+    energy.innerText = (gEnergy + kEnergy + cEnergy).toFixed(4);
 }
 
 function DetectCollision(nextPos, deltaTime, acc) {
@@ -201,9 +230,9 @@ function DetectCollision(nextPos, deltaTime, acc) {
         fType = (Math.abs(acc.x) <= sFric && sqrVel.x < V_ERROR.x) ? acc.x : cFric;
 
         sqrVel.x += -Math.sign(sqrVel.x) * fType * deltaTime;
-        sqrVel.y = -Math.abs(sqrVel.y) * cfgArr[3].v;
+        sqrVel.y = (-Math.abs(sqrVel.y) + acc.y / 2 * deltaTime) * cfgArr[3].v;
         
-        if (Math.abs(sqrVel.y) - cfgArr[2].v * deltaTime <= V_ERROR.y) sqrVel.y = 0;
+        if (Math.abs(sqrVel.y) <= V_ERROR.y) sqrVel.y = 0;
         if (Math.abs(sqrVel.x) <= V_ERROR.x) sqrVel.x = 0;
     }
 }
@@ -229,12 +258,14 @@ async function Process(frameTime) {
         if (isPushing) sqrVel = PushSquare();
         else sqrAcc = !isPaused ? sqrAcc.Add(SpringPush()) : sqrAcc;
 
+        sqrVel = sqrVel.Add(sqrAcc.Mult(deltaTime));
+        
         const nextFramePos = sqrPos.Add(sqrVel.Mult(deltaTime));
         DetectCollision(nextFramePos, deltaTime, sqrAcc);
-        
-        sqrVel = sqrVel.Add(sqrAcc.Mult(deltaTime));
+
         sqrPos = sqrPos.Add(sqrVel.Mult(deltaTime));
         
+        UpdateEnergy();
         MoveSquare(sqrPos, animInterp ? cfgArr[0].v : frameTime);
     }
 }
