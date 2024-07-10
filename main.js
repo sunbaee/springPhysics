@@ -1,4 +1,5 @@
 import Vector from './JavaScript/vector.js';
+import Holder from './JavaScript/holder.js';
 
 // HTML config
 document.addEventListener("dragstart", e => {
@@ -121,6 +122,8 @@ window.onmouseup = () => {
 
     isClicking = false;
     isPushing = false;
+
+    if (isPaused) sqrVel = new Vector();
 }
 
 function Pause(element) {
@@ -157,7 +160,7 @@ function PushSquare() {
 }
 
 function SpringDistance(springVector) {
-    return springVector.Mag() - cfgArr[6].v;
+    return (springVector.Mag() - cfgArr[6].v);
 }
 
 function SpringPush() {
@@ -221,7 +224,7 @@ async function Process(frameTime) {
         SetPositions();
 
         if (isPushing) sqrVel = PushSquare();
-        else sqrAcc = !isPaused ? sqrAcc.Add(SpringPush()) : sqrAcc;
+        else sqrAcc = !isPaused ? sqrAcc.Add(SpringPush()) : new Vector();
 
         sqrVel = sqrVel.Add(sqrAcc.Mult(deltaTime));
         

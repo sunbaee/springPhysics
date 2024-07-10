@@ -7,7 +7,8 @@ export default class Holder {
         this.detRad = detRad;
     }
 
-    Hold(mPos) {
+    Hold(element) {
+        const mPos = new Vector(element.clientX, element.clientY);
         const dVec = mPos.Subtract(this.hPos);
 
         if (dVec.MagSqrd() >= Math.pow(this.detRad, 2)) return new Vector();
