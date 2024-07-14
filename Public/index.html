@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Physics</title>
+</head>
+<body>
+    <div class="simInfo">
+        <h3>Simulation Info: </h1>
+        <p>Energy: <var>15</var></p>
+    </div>
+    <div class="container">
+        <ul id ="booleans" class="variables">
+            <li>
+                <label>Interpolate: </label>
+                <input class="checkBox" type="checkbox" checked="true" onchange="EnableInterpolation(this)">
+            </li>
+            <li>
+                <label>Ground: </label>
+                <input class="checkBox" type="checkbox" onchange="DisableGround(this)" checked="true">
+            </li>
+            <li>
+                <label>Pause: </label>
+                <input class="checkBox" type="checkbox" onchange="Pause(this)">
+            </li>
+            <li>
+                <label>Trail: </label>
+                <input class="checkBox" type="checkbox" onchange="">
+            </li>
+        </ul>
+        <ul class="variables" id="numbers">
+            <li>
+                <label>It./s: </label>
+                <input id ="FPS" class="textBox" type="number" value="60" min="10" onchange="UpdateLabelValues(this, 'FrPerS')" oninput="if (value < min) value = min">
+            </li>
+            <li class="sliderLi">
+                <label for="Mass">Mass: <span>5</span>kg</label>
+                <input id="Mass" class="slider" oninput="UpdateLabelValues(this)" type="range" min="1" max="50" value="5">
+            </li>
+            <li class="sliderLi">
+                <label for="Gravity">Gravity: <span>10</span>m/s²</label>
+                <input id="Gravity" class="slider" oninput="UpdateLabelValues(this, 'm')" type="range" min="-50" max="50" value="10">
+            </li>
+            <li class="sliderLi">
+                <label for="collisionDamping">Damping: <span>40</span>%</label>
+                <input id="collisionDamping" class="slider" oninput="UpdateLabelValues(this, '%')" type="range" min="0" max="100" value="40">
+            </li>
+            <li class="sliderLi">
+                <label for="staticFric">S-Friction: <span>65</span>%</label>
+                <input id="staticFric" class="slider" oninput="UpdateLabelValues(this, '%F')" type="range" min="0" max="100" value="65">
+            </li>
+            <li class="sliderLi">
+                <label for="cineticFric">C-Friction: <span>25</span>%</label>
+                <input id="cineticFric" class="slider" oninput="UpdateLabelValues(this, '%F')" type="range" min="0" max="100" value="25">
+            </li>
+            <li class="sliderLi">
+                <label for="springSize">Spring S(0): <span>1</span>m</label>
+                <input id="springSize" class="slider" oninput="UpdateLabelValues(this, 'm')" type="range" min="0" max="50" value="1">
+            </li>
+            <li class="sliderLi">
+                <label for="eConst">K: <span>50</span>N/m</label>
+                <input id="eConst" class="slider" oninput="UpdateLabelValues(this)" type="range" min="0" max="200" value="50">
+            </li>
+        </ul>
+    </div>
+
+    <input class="showConfig checkBox" type="checkbox" checked="true" onclick="DisableContainer(this)">
+
+    <div id="square"></div>
+    <div class="spring"></div>
+    <div class="ground"></div>
+    
+    <script type="module" src="Assets/bundle.js"></script>
+</body>
+</html>
